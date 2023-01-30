@@ -1,0 +1,43 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:29092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  cloud:
+    function:
+      definition: toUpperCase
+    stream:
+      bindings:
+        toUpperCase-in-0:
+          destination: incoming
+          group: group-1
+          consumer:
+            batch-mode: true
+            use-native-decoding: true
+        toUpperCase-out-0:
+          destination: outgoing
+          producer:
+            use-native-encoding: true
+        dlq-out-0:
+          destination: my-dlq
+          producer:
+            use-native-encoding: true
+      output-bindings: dlq
+      kafka:
+        binder:
+          brokers: localhost:29092
+          consumer-properties:
+            spring.json.trusted.packages: '*'
+          producer-properties:
+            spring.json.trusted.packages: '*'
+          configuration:
+            value.serializer: org.springframework.kafka.support.serializer.JsonSerializer
+            value.deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+        bindings:
+          toUpperCase-in-0:
+            consumer:
+              start-offset: latest
+              reset-offsets: true
+              configuration:
+                max.poll.records: 10
+                fetch.min.bytes: 10000
